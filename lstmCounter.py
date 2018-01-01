@@ -2,8 +2,10 @@
 import tensorflow as tf
 from tensorflow.contrib import rnn
 import numpy as np 
+from tqdm import tqdm
 input_sample_size = 20 #Use LSTM to count the number of 1's in a list of input_sample_size binary elements
 # fn to generate 100000 random lists(input_sample_size elements each) of binary elements
+
 def generate_data(input_sample_size):
 	x=[]
 	size = 100000
@@ -34,6 +36,7 @@ def generate_data(input_sample_size):
 
 #get the generated data
 ti, to, xi, xo = generate_data(input_sample_size)
+
 print("Shape of training input :",ti.shape)
 print("Shape of training labels :",to.shape)
 
@@ -76,7 +79,7 @@ with tf.Session() as sess:
 	writer = tf.summary.FileWriter("./visualize", sess.graph) 
 	num_batches = int(len(ti)/batch_size)
 	print("\nGood To Go - Training Starts\n")
-	for i in range(epochs):
+	for i in tqdm(range(epochs)):
 	 	epoch_loss = 0
 	 	s = 0
 	 	for j in range(num_batches):
