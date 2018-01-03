@@ -6,9 +6,9 @@ from tqdm import tqdm
 input_sample_size = 20 #Use LSTM to count the number of 1's in a list of input_sample_size binary elements
 # fn to generate 100000 random lists(input_sample_size elements each) of binary elements
 
-def generate_data(input_sample_size):
+def generate_data(input_sample_size=20):
 	x=[]
-	size = 100000
+	train_size = 10000
 	for i in range(125000):
 		a = np.random.randint(input_sample_size)/input_sample_size
 		b = 1 - a
@@ -27,10 +27,10 @@ def generate_data(input_sample_size):
 		i[y[j]] = 1
 		j += 1 
 
-	ti = np.array(x[:size])
-	to = np.array(one_hot[:size])
-	xi = np.array(x[size:len(x)])
-	xo = np.array(one_hot[size:len(x)])
+	ti = np.array(x[:train_size])
+	to = np.array(one_hot[:train_size])
+	xi = np.array(x[train_size:len(x)])
+	xo = np.array(one_hot[train_size:len(x)])
 
 	return ti, to, xi, xo
 
@@ -39,16 +39,18 @@ ti, to, xi, xo = generate_data(input_sample_size)
 
 print("Shape of training input :",ti.shape)
 print("Shape of training labels :",to.shape)
+print("Shape of testing input :",xi.shape)
+print("Shape of testing output :",xo.shape)
 
 #define hyperparameters
-keep_prob = 0.7 
-batch_size = 100
-time_steps = input_sample_size# list of 20 binary elements
+batch_size = 1000
+time_steps = input_sample_size #List of 20 binary elements
 input_size = 1 
-num_units = 128 
-n_classes = input_sample_size + 1#again +1 is because number possible outputs = 21
+num_units = 24 
+n_classes = input_sample_size + 1 #Again +1 is because number possible outputs = 21
 learning_rate = 0.001
-epochs = 4
+epochs = 3000
+keep_prob = 0.7 
 
 
 X = tf.placeholder(tf.float32, [None, time_steps, input_size], name='X')
@@ -79,7 +81,7 @@ with tf.Session() as sess:
 	writer = tf.summary.FileWriter("./visualize", sess.graph) 
 	num_batches = int(len(ti)/batch_size)
 	print("\nGood To Go - Training Starts\n")
-	for i in tqdm(range(epochs)):
+	for i in range(epochs+1):
 	 	epoch_loss = 0
 	 	s = 0
 	 	for j in range(num_batches):
@@ -88,10 +90,12 @@ with tf.Session() as sess:
 	 		e, _ = sess.run([loss, optimizer], feed_dict={X:X_batch,Y:Y_batch})
 	 		epoch_loss += e
 	 		s += batch_size
-	 		if j%100==0:
-	 			a = sess.run(training_accuracy, feed_dict={X:X_batch,Y:Y_batch})
-	 			print("Training accuracy percent now: ",a*100)
-	 	print("The total loss for EPOCH {0} is {1}".format(i+1,epoch_loss))
+	 		if (j+1)%100==0:#its j+1 coz I dont want it to print the training accuracy at each epoch when j=0
+	 			a = sess.run(training_accuracy, feed_dict={X:X_batch,Y:Y_batch})#ignore this line
+	 			print("Training accuracy percent now{0}:{1} ".format(j,a*100))#ignore this line
+	 	if i%1000==0:
+	 		a = sess.run(training_accuracy, feed_dict={X:X_batch,Y:Y_batch})
+	 		print("The total error for EPOCH {0} is {1:.3f} %".format(i, 100*(1-a)))
 	
 	#Testing the model
 
@@ -104,9 +108,9 @@ with tf.Session() as sess:
 		a = sess.run(training_accuracy, feed_dict={X:X_batch, Y:Y_batch}) 		
 		overall_correct_preds += a
 		s += batch_size
-		print("Test {0} Batch Accuracy:{1}".format(k,a*100))
+		print("Test Batch {0} Accuracy:{1} %".format(k+1,a*100))
 
-	print("Accuracy of Model = {0}".format((overall_correct_preds/num_batches)*100))
+	print("\nTest Accuracy of the Model = {0:.3f} %\n".format((overall_correct_preds/num_batches)*100))
 	writer.close()
 	testIt = [[[1],[1],[1],[1],[1],[1],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]]] #shape(?,20,1) aka (?,time_steps,input_size)
 	print(sess.run(prediction,feed_dict={X: testIt}))
