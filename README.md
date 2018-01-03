@@ -27,8 +27,7 @@ This is an image I got from [Christopher Olah's blog](http://colah.github.io/). 
 # Results
 ## Training
 ![trainresult](https://user-images.githubusercontent.com/34591573/34521217-9eaa84b4-f0b2-11e7-9e6a-a5231ed724c9.png)
-
-I got a training error of 0.3% after 3000 epochs, which is quite impressive!
+I got a training error of 0.6% after 3000 epochs, which is quite impressive!
 The hyperparameters were set to the following:
 ```
 batch_size = 1000
